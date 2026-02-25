@@ -7,26 +7,27 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
     /**
      * Login: returns API token for mobile.
-     * POST /api/login { "email": "...", "password": "..." }
+     * POST /api/login { "username": "...", "password": "..." }
      */
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => ['required', 'string', 'email'],
+            'username' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('email', $request->string('email')->lower())->first();
+        $user = User::where('username', $request->string('username')->lower())->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
-                'email' => [__('auth.failed')],
+                'username' => [__('auth.failed')],
             ]);
         }
 
@@ -38,6 +39,7 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'username' => $user->username,
                 'email' => $user->email,
             ],
         ]);
@@ -45,20 +47,29 @@ class AuthController extends Controller
 
     /**
      * Register: create user and return API token.
-     * POST /api/register { "name": "...", "email": "...", "password": "...", "password_confirmation": "..." }
+     * POST /api/register { "name", "email", "username", "password", "password_confirmation", "course", "grade_level" }
      */
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'username' => ['required', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'course' => ['required', 'string', 'max:255'],
+            'grade_level' => ['required', 'string', 'max:255'],
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'username' => Str::lower($validated['username']),
             'password' => Hash::make($validated['password']),
+            'course' => $validated['course'],
+            'grade_level' => $validated['grade_level'],
+            'level' => 1,
+            'xp' => 0,
+            'is_gamemaster' => false,
         ]);
 
         $token = $user->createToken('mobile')->plainTextToken;
@@ -69,6 +80,7 @@ class AuthController extends Controller
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
+                'username' => $user->username,
                 'email' => $user->email,
             ],
         ], 201);
@@ -96,6 +108,7 @@ class AuthController extends Controller
         return response()->json([
             'id' => $user->id,
             'name' => $user->name,
+            'username' => $user->username,
             'email' => $user->email,
         ]);
     }
