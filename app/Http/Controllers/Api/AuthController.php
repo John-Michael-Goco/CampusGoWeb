@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -46,31 +47,57 @@ class AuthController extends Controller
     }
 
     /**
-     * Register: create user and return API token.
-     * POST /api/register { "name", "email", "username", "password", "password_confirmation", "course", "grade_level" }
+     * Register: create user and return API token. Only registered students can register.
+     * users.name is set from first_name + " " + last_name.
+     * POST /api/register { "email", "username", "password", "password_confirmation", "student_id", "last_name", "first_name", "birthday" }
      */
     public function register(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'username' => ['required', 'string', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-            'course' => ['required', 'string', 'max:255'],
-            'grade_level' => ['required', 'string', 'max:255'],
+            'student_id' => ['required', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'birthday' => ['required', 'date', 'date_format:Y-m-d'],
         ]);
 
+        $student = Student::where('student_id', $validated['student_id'])->first();
+
+        if (! $student) {
+            throw ValidationException::withMessages([
+                'student_id' => ['Only registered students can create an account. Please provide a valid student ID.'],
+            ]);
+        }
+
+        if ($student->user_id !== null) {
+            throw ValidationException::withMessages([
+                'student_id' => ['This student ID is already linked to an account. Please log in instead.'],
+            ]);
+        }
+
+        $birthdayMatch = $student->birthday->format('Y-m-d') === $validated['birthday'];
+        $nameMatch = Str::lower($student->last_name) === Str::lower($validated['last_name'])
+            && Str::lower($student->first_name) === Str::lower($validated['first_name']);
+
+        if (! $nameMatch || ! $birthdayMatch) {
+            throw ValidationException::withMessages([
+                'student_id' => ['The student ID, last name, first name, or birthday does not match our records. Only registered students can create an account.'],
+            ]);
+        }
+
         $user = User::create([
-            'name' => $validated['name'],
+            'name' => trim($validated['first_name']).' '.trim($validated['last_name']),
             'email' => $validated['email'],
             'username' => Str::lower($validated['username']),
             'password' => Hash::make($validated['password']),
-            'course' => $validated['course'],
-            'grade_level' => $validated['grade_level'],
             'level' => 1,
             'xp' => 0,
             'is_gamemaster' => false,
         ]);
+
+        $student->update(['user_id' => $user->id]);
 
         $token = $user->createToken('mobile')->plainTextToken;
 

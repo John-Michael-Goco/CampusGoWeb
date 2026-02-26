@@ -23,8 +23,6 @@ class User extends Authenticatable
         'email',
         'username',
         'password',
-        'course',
-        'grade_level',
         'level',
         'xp',
         'is_gamemaster',
@@ -52,5 +50,10 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_gamemaster' => 'boolean',
         ];
+    }
+
+    public function student(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Student::class);
     }
 }

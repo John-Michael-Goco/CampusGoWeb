@@ -15,8 +15,6 @@ test('new users can register', function () {
         'username' => 'testuser',
         'password' => 'password',
         'password_confirmation' => 'password',
-        'course' => 'BSIT',
-        'grade_level' => '1',
     ]);
 
     $this->assertAuthenticated();

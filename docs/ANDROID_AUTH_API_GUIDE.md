@@ -37,15 +37,16 @@ data class LoginRequest(
     val password: String
 )
 
-// Register request
+// Register request (student-only: student_id must exist and match name/birthday; user.name = firstName + " " + lastName)
 data class RegisterRequest(
-    val name: String,
     val email: String,
     val username: String,
     val password: String,
     @SerializedName("password_confirmation") val passwordConfirmation: String,
-    val course: String,
-    @SerializedName("grade_level") val gradeLevel: String
+    @SerializedName("student_id") val studentId: String,
+    @SerializedName("last_name") val lastName: String,
+    @SerializedName("first_name") val firstName: String,
+    val birthday: String  // Y-m-d, e.g. "2000-01-15"
 )
 
 // User (nested in auth responses)
@@ -204,22 +205,25 @@ lifecycleScope.launch {
     }
 }
 
-// Register
+// Register (only registered students; student_id/last_name/first_name/birthday must match campus records)
 lifecycleScope.launch {
     val body = RegisterRequest(
-        name = "Full Name",
         email = "email@example.com",
         username = "username",
         password = "password123",
         passwordConfirmation = "password123",
-        course = "BSIT",
-        gradeLevel = "1"
+        studentId = "2024-001",
+        lastName = "Doe",
+        firstName = "Jane",
+        birthday = "2000-01-15"
     )
     val response = ApiClient.api.register(body)
     if (response.isSuccessful) {
         val auth = response.body()!!
         TokenManager.saveToken(context, auth.token)
         // Navigate to home
+    } else {
+        // 422: check response.errorBody() for errors.student_id, errors.email, etc.
     }
 }
 
@@ -268,10 +272,34 @@ android:networkSecurityConfig="@xml/network_security_config"
 
 | Method | Endpoint       | Auth   | Body (JSON) |
 |--------|----------------|--------|-------------|
-| POST   | `/api/register`| No     | name, email, username, password, password_confirmation, course, grade_level |
 | POST   | `/api/login`   | No     | username, password |
+| POST   | `/api/register`| No     | email, username, password, password_confirmation, **student_id**, **last_name**, **first_name**, **birthday** (Y-m-d). user.name = first_name + " " + last_name |
 | GET    | `/api/user`    | Bearer | — |
 | POST   | `/api/logout`  | Bearer | — |
 
 After **login** or **register**, send the returned `token` in the header:  
 `Authorization: Bearer <token>` for `/api/user` and `/api/logout`.
+
+---
+
+## 10. Register: student-only and validation
+
+Registration is **only for registered students**. The server checks:
+
+1. **student_id** exists in the campus `students` table.
+2. That student is not already linked to an account (`user_id` is null).
+3. **last_name**, **first_name**, and **birthday** (Y-m-d) match the student record (case-insensitive for names).
+
+**Success:** `201` with `{ "token", "token_type": "Bearer", "user": { "id", "name", "username", "email" } }`.
+
+**Validation errors (422):**
+
+| Situation | Typical error key | Example message |
+|-----------|--------------------|-----------------|
+| Missing student fields | student_id, last_name, first_name, birthday | (Laravel validation messages) |
+| Unknown student_id | student_id | Only registered students can create an account. Please provide a valid student ID. |
+| Student already has account | student_id | This student ID is already linked to an account. Please log in instead. |
+| Name or birthday mismatch | student_id | The student ID, last name, first name, or birthday does not match our records. Only registered students can create an account. |
+| Email/username taken | email or username | (Laravel uniqueness messages) |
+
+Parse `response.errorBody()` as JSON; the body has an `errors` object (field → array of messages) and optionally `message`.

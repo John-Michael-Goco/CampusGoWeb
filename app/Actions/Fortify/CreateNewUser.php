@@ -23,8 +23,6 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             ...$this->profileRules(),
             'username' => $this->usernameRules(),
-            'course' => ['required', 'string', 'max:255'],
-            'grade_level' => ['required', 'string', 'max:255'],
             'password' => $this->passwordRules(),
         ])->validate();
 
@@ -33,8 +31,6 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'username' => Str::lower($input['username']),
             'password' => $input['password'],
-            'course' => $input['course'],
-            'grade_level' => $input['grade_level'],
             'level' => 1,
             'xp' => 0,
             'is_gamemaster' => false,

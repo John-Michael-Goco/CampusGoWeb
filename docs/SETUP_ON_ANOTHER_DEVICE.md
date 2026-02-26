@@ -224,7 +224,7 @@ If you use Inertia SSR:
 ## 8. API (for mobile / other clients)
 
 - Base URL (local): `http://localhost:8000/api` (or `http://YOUR_IP:8000/api` from another device).
-- Endpoints: see **docs/ANDROID_AUTH_API_GUIDE.md** (or **docs/ANDROID_API_GUIDE.md**).
+- Auth API reference: **docs/API_AUTH.md**. Android (Retrofit/Kotlin): **docs/ANDROID_AUTH_API_GUIDE.md**.
 - From Android emulator use `http://10.0.2.2:8000/api` to reach the host machine’s Laravel server.
 
 ---

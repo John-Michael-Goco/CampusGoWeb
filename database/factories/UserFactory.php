@@ -30,8 +30,6 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'course' => fake()->randomElement(['BSIT', 'BSCS', 'BSIS', 'Other']),
-            'grade_level' => (string) fake()->numberBetween(1, 4),
             'level' => 1,
             'xp' => 0,
             'is_gamemaster' => false,
