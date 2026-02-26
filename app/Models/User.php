@@ -56,4 +56,24 @@ class User extends Authenticatable
     {
         return $this->hasOne(Student::class);
     }
+
+    public function userQuests(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserQuest::class);
+    }
+
+    public function userQuestSteps(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserQuestStep::class);
+    }
+
+    public function userCoupons(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserCoupon::class);
+    }
+
+    public function userBadges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(UserBadge::class);
+    }
 }

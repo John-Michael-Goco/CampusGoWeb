@@ -14,8 +14,8 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends Controller
 {
     /**
-     * Login: returns API token for mobile.
-     * POST /api/login { "username": "...", "password": "..." }
+     * Login: returns API token for mobile. Accepts email or username in the "username" field.
+     * POST /api/login { "username": "email@example.com" or "johndoe", "password": "..." }
      */
     public function login(Request $request): JsonResponse
     {
@@ -24,7 +24,10 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $user = User::where('username', $request->string('username')->lower())->first();
+        $login = $request->string('username')->trim()->lower();
+        $user = str_contains($login->toString(), '@')
+            ? User::where('email', $login)->first()
+            : User::where('username', $login)->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
