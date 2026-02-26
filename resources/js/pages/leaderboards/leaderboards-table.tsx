@@ -1,19 +1,17 @@
 import { Link } from '@inertiajs/react';
-import { ArrowDown, ArrowUp, ArrowUpDown, Pencil, Trash2 } from 'lucide-react';
-import type { Student } from '@/pages/students/types';
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye } from 'lucide-react';
+import type { LeaderboardEntry } from '@/pages/leaderboards/types';
 import { Button } from '@/components/ui/button';
 
-type SortColumn = 'student_id' | 'last_name';
+type SortColumn = 'rank' | 'student_id' | 'level' | 'xp';
 type SortDir = 'asc' | 'desc';
 
 type Props = {
-    students: Student[];
+    entries: LeaderboardEntry[];
     sort: SortColumn;
     dir: SortDir;
     currentPage: number;
     search?: string;
-    onEdit: (student: Student) => void;
-    onDelete: (student: Student) => void;
 };
 
 function buildSortHref(
@@ -27,7 +25,7 @@ function buildSortHref(
     params.set('sort', column);
     params.set('dir', nextDir);
     if (search?.trim()) params.set('search', search.trim());
-    return `/students?${params.toString()}`;
+    return `/leaderboards?${params.toString()}`;
 }
 
 function SortableHeader({
@@ -73,23 +71,50 @@ function SortableHeader({
     );
 }
 
-function formatBirthday(birthday: string | null): string {
-    if (!birthday) return '—';
-    try {
-        return new Date(birthday).toLocaleDateString();
-    } catch {
-        return '—';
+function RankBadge({ rank }: { rank: number }) {
+    if (rank === 1) {
+        return (
+            <span
+                className="inline-flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-400/90 font-bold text-amber-950 shadow-sm"
+                title="1st place"
+            >
+                {rank}
+            </span>
+        );
     }
+    if (rank === 2) {
+        return (
+            <span
+                className="inline-flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-slate-300 font-bold text-slate-700 shadow-sm dark:bg-slate-500 dark:text-slate-100"
+                title="2nd place"
+            >
+                {rank}
+            </span>
+        );
+    }
+    if (rank === 3) {
+        return (
+            <span
+                className="inline-flex size-8 flex-shrink-0 items-center justify-center rounded-full bg-amber-600/80 font-bold text-amber-100 shadow-sm"
+                title="3rd place"
+            >
+                {rank}
+            </span>
+        );
+    }
+    return (
+        <span className="inline-flex size-8 flex-shrink-0 items-center justify-center rounded-md bg-muted font-semibold text-muted-foreground">
+            {rank}
+        </span>
+    );
 }
 
-export function StudentsTable({
-    students,
+export function LeaderboardsTable({
+    entries,
     sort,
     dir,
     currentPage,
     search,
-    onEdit,
-    onDelete,
 }: Props) {
     return (
         <div className="rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
@@ -98,6 +123,14 @@ export function StudentsTable({
                     <thead>
                         <tr className="border-b border-sidebar-border/70 bg-muted/50 dark:border-sidebar-border dark:bg-muted/20">
                             <SortableHeader
+                                label="Rank"
+                                column="rank"
+                                currentSort={sort}
+                                currentDir={dir}
+                                currentPage={currentPage}
+                                search={search}
+                            />
+                            <SortableHeader
                                 label="Student ID"
                                 column="student_id"
                                 currentSort={sort}
@@ -105,91 +138,77 @@ export function StudentsTable({
                                 currentPage={currentPage}
                                 search={search}
                             />
+                            <th className="px-4 py-3 text-left font-medium">
+                                Name
+                            </th>
                             <SortableHeader
-                                label="Last Name"
-                                column="last_name"
+                                label="Level"
+                                column="level"
                                 currentSort={sort}
                                 currentDir={dir}
                                 currentPage={currentPage}
                                 search={search}
                             />
-                            <th className="px-4 py-3 text-left font-medium">
-                                First Name
-                            </th>
-                            <th className="px-4 py-3 text-left font-medium">
-                                Birthday
-                            </th>
-                            <th className="px-4 py-3 text-left font-medium">
-                                Account
-                            </th>
-                            <th className="w-36 px-4 py-3 text-right font-medium">
+                            <SortableHeader
+                                label="EXP"
+                                column="xp"
+                                currentSort={sort}
+                                currentDir={dir}
+                                currentPage={currentPage}
+                                search={search}
+                            />
+                            <th className="w-32 px-4 py-3 text-right font-medium">
                                 Actions
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-                        {students.length === 0 ? (
+                        {entries.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={6}
                                     className="px-4 py-8 text-center text-muted-foreground"
                                 >
-                                    No students found.
+                                    No entries found.
                                 </td>
                             </tr>
                         ) : (
-                            students.map((student) => (
+                            entries.map((entry) => (
                                 <tr
-                                    key={student.id}
+                                    key={entry.id}
                                     className="border-b border-sidebar-border/50 dark:border-sidebar-border/50 last:border-0"
                                 >
                                     <td className="px-4 py-3">
-                                        {student.student_id}
+                                        <RankBadge rank={entry.rank} />
                                     </td>
                                     <td className="px-4 py-3">
-                                        {student.last_name}
+                                        {entry.student_id}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {student.first_name}
+                                        {entry.last_name}, {entry.first_name}
                                     </td>
                                     <td className="px-4 py-3">
-                                        {formatBirthday(student.birthday)}
+                                        {entry.level}
                                     </td>
-                                    <td className="px-4 py-3 text-muted-foreground">
-                                        {student.user
-                                            ? student.user.username
-                                            : '—'}
+                                    <td className="px-4 py-3">
+                                        {entry.xp}
                                     </td>
                                     <td className="px-4 py-3 text-right">
-                                        <div className="flex justify-end gap-1">
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="gap-1.5"
-                                                onClick={() =>
-                                                    onEdit(student)
-                                                }
-                                                title="Update student"
-                                                aria-label={`Update ${student.first_name} ${student.last_name}`}
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="gap-1.5"
+                                            asChild
+                                        >
+                                            <Link
+                                                href="#"
+                                                preserveState
+                                                className="inline-flex items-center"
                                             >
-                                                <Pencil className="size-4" />
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                className="gap-1.5 text-destructive hover:text-destructive"
-                                                onClick={() =>
-                                                    onDelete(student)
-                                                }
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="size-4" />
-                                                Delete
-                                            </Button>
-                                        </div>
+                                                <Eye className="size-4" />
+                                                View Player
+                                            </Link>
+                                        </Button>
                                     </td>
                                 </tr>
                             ))

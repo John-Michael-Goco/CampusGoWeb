@@ -4,7 +4,7 @@ export default function AppLogo() {
             <img
                 src="/images/campusgo-logo.png"
                 alt="CampusGo"
-                className="h-8 w-auto"
+                className="size-9 shrink-0 object-contain group-data-[collapsible=icon]:size-8"
             />
             <span className="truncate text-lg font-semibold">CampusGo</span>
         </>

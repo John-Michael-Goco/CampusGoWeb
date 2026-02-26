@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\LeaderboardController;
 use App\Http\Controllers\Web\StudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -12,6 +13,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('dashboard');
     })->name('dashboard');
 
+    Route::get('leaderboards', [LeaderboardController::class, 'index'])->name('leaderboards.index');
     Route::get('students', [StudentController::class, 'index'])->name('students.index');
     Route::post('students', [StudentController::class, 'store'])->name('students.store');
     Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
