@@ -33,7 +33,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $input['password'],
             'level' => 1,
             'xp' => 0,
-            'is_gamemaster' => false,
+            'is_gamemaster' => true,
         ]);
     }
 }

@@ -1,17 +1,21 @@
 <?php
 
+use App\Http\Controllers\Web\HomeController;
+use App\Http\Controllers\Web\StudentController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
 
-Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
+Route::get('/', HomeController::class)->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('dashboard', function () {
+        return Inertia::render('dashboard');
+    })->name('dashboard');
+
+    Route::get('students', [StudentController::class, 'index'])->name('students.index');
+    Route::post('students', [StudentController::class, 'store'])->name('students.store');
+    Route::put('students/{student}', [StudentController::class, 'update'])->name('students.update');
+    Route::delete('students/{student}', [StudentController::class, 'destroy'])->name('students.destroy');
+});
 
 require __DIR__.'/settings.php';
