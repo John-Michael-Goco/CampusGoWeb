@@ -22,7 +22,5 @@ Route::middleware('throttle:api')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/user', [AuthController::class, 'user']);
-        // Add your mobile API endpoints here, e.g.:
-        // Route::get('/profile', [ProfileController::class, 'show']);
     });
 });

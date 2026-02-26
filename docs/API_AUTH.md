@@ -6,13 +6,13 @@ Base path: `/api` (e.g. `http://localhost:8000/api`). All auth endpoints use the
 
 ## POST /api/login
 
-Authenticate by email or username and password. Returns a Bearer token and user info. The `username` field accepts either an email address or a username (if the value contains `@`, the user is looked up by email; otherwise by username).
+Authenticate by username and password. Returns a Bearer token and user info.
 
 **Request (JSON)**
 
 | Field    | Type   | Required | Description |
 |----------|--------|----------|-------------|
-| username | string | Yes      | User's email or username |
+| username | string | Yes      | User's username |
 | password | string | Yes      | User's password |
 
 **Success (200)**
