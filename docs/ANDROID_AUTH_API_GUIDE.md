@@ -2,6 +2,17 @@
 
 Use these endpoints from your Android app with **Retrofit** and store the token for authenticated requests.
 
+For a single reference (Postman + Android, all JSON bodies and Bearer usage), see **docs/API_AUTH.md**.
+
+---
+
+## Testing with Postman
+
+- **Base URL (same PC as Laravel):** `http://localhost:8000/api`
+- **Login:** `POST http://localhost:8000/api/login` → Body raw JSON: `{"username":"johndoe","password":"password"}`
+- **Register:** `POST http://localhost:8000/api/register` → Body raw JSON: include `email`, `username`, `password`, `password_confirmation`, `student_id`, `last_name`, `first_name`, `birthday` (Y-m-d). Example in **docs/API_AUTH.md**.
+- **Get user / Logout:** `GET http://localhost:8000/api/user` and `POST http://localhost:8000/api/logout` require the **Bearer token**. In Postman: Auth → Type **Bearer Token** → paste the `token` from login/register. Or add header: `Authorization` = `Bearer <token>`.
+
 ---
 
 ## 1. Base URL
